@@ -14,8 +14,19 @@ if (preg_match('#^/guides/([a-z0-9-]+)/?$#', $requestPath, $guideMatch)) {
 
 require __DIR__ . '/guide-data.php';
 
-$isYwagAdmin = isset($_GET['ywag_admin']) && $_GET['ywag_admin'] === '1';
-$visitStatsPath = __DIR__ . '/assets/data/ywag-visits.json';
+require_once __DIR__ . '/security.php';
+$adminRequested = isset($_GET['ywag_admin']) && $_GET['ywag_admin'] === '1';
+$adminSecret = (string)(getenv('VISIT_ADMIN_KEY') ?: '');
+$adminProvided = (string)($_SERVER['HTTP_X_VISIT_ADMIN_KEY'] ?? $_SERVER['PHP_AUTH_PW'] ?? '');
+$isYwagAdmin = $adminRequested && visitor_admin_authorized($adminSecret, $adminProvided);
+if ($adminRequested && !$isYwagAdmin) {
+  header('WWW-Authenticate: Basic realm="Visitor statistics"');
+  http_response_code(401);
+  exit('Administrator authentication required');
+}
+$privateStatsDir = dirname(__DIR__) . '/private_bot';
+$analyticsEnabled = is_dir($privateStatsDir) && is_writable($privateStatsDir);
+$visitStatsPath = $privateStatsDir . '/ywag-visits.json';
 $todayKey = date('Y-m-d');
 $visitStats = [
   'total' => 0,
@@ -35,16 +46,13 @@ if (is_file($visitStatsPath)) {
 $isMobileVisit = preg_match('/Android|iPhone|iPad|iPod|Mobile/i', $_SERVER['HTTP_USER_AGENT'] ?? '') === 1;
 $visitDevice = $isMobileVisit ? 'mobile' : 'desktop';
 
-if (!$isYwagAdmin && empty($_COOKIE['ywag_visit_seen'])) {
+if ($analyticsEnabled && !$isYwagAdmin && empty($_COOKIE['ywag_visit_seen'])) {
   $visitStats['total'] = (int) ($visitStats['total'] ?? 0) + 1;
   $visitStats['today'][$todayKey] = (int) ($visitStats['today'][$todayKey] ?? 0) + 1;
   $visitStats['devices'][$visitDevice] = (int) ($visitStats['devices'][$visitDevice] ?? 0) + 1;
   $visitStats['last_visit'] = date('Y-m-d H:i:s');
   $visitStats['last_device'] = $visitDevice;
 
-  if (!is_dir(dirname($visitStatsPath))) {
-    mkdir(dirname($visitStatsPath), 0755, true);
-  }
   file_put_contents($visitStatsPath, json_encode($visitStats, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES), LOCK_EX);
   setcookie('ywag_visit_seen', '1', [
     'expires' => time() + 21600,

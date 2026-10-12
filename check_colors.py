@@ -1,7 +1,7 @@
 from PIL import Image
 from collections import Counter
 
-img = Image.open('/Users/christambayong/.gemini/antigravity/brain/c5a5eed3-43ca-44c1-a9ed-18e164df64cf/media__1779037029149.png').convert("RGBA")
+img = Image.open('~/workspace/.gemini/antigravity/brain/c5a5eed3-43ca-44c1-a9ed-18e164df64cf/media__1779037029149.png').convert("RGBA")
 pixels = img.load()
 
 # Check corners

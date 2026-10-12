@@ -33,6 +33,6 @@ def remove_bg(input_path, output_path, tolerance=45):
     print(f"Done: {img.size}")
 
 remove_bg(
-    '/Users/christambayong/.gemini/antigravity/brain/c5a5eed3-43ca-44c1-a9ed-18e164df64cf/bat_ball_upright_1779038416312.png',
+    '~/workspace/.gemini/antigravity/brain/c5a5eed3-43ca-44c1-a9ed-18e164df64cf/bat_ball_upright_1779038416312.png',
     'assets/img/bat_ball_transparent.png'
 )

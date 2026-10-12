@@ -22,7 +22,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Build audited deploy list
         shell: bash
@@ -66,20 +66,27 @@ jobs:
           PORT: ${{ secrets.HOSTINGER_PORT }}
           USER: ${{ secrets.HOSTINGER_USERNAME }}
           KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
+          KNOWN_HOSTS: ${{ secrets.HOSTINGER_KNOWN_HOSTS }}
+          LOCK_DIR: ${{ secrets.HOSTINGER_LOCK_DIR }}
           REMOTE_PATH: ${{ secrets.HOSTINGER_REMOTE_PATH }}
         run: |
           set -euo pipefail
-          [ -n "$HOST" ] && [ -n "$USER" ] && [ -n "$KEY" ] && [ -n "$REMOTE_PATH" ]
+          [ -n "$HOST" ] && [ -n "$USER" ] && [ -n "$KEY" ] && [ -n "$REMOTE_PATH" ] && [ -n "$KNOWN_HOSTS" ]
+          [[ "$HOST" =~ ^[a-zA-Z0-9.-]+$ ]] && [[ "$USER" =~ ^[a-zA-Z0-9_-]+$ ]]
+          [[ "$REMOTE_PATH" =~ ^/[a-zA-Z0-9_./-]+$ ]]
+          if [ -n "$LOCK_DIR" ]; then [[ "$LOCK_DIR" =~ ^/[a-zA-Z0-9_./-]+$ ]]; fi
           [ -n "$PORT" ] || PORT=22
           install -m 700 -d ~/.ssh
           printf '%s\n' "$KEY" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -p "$PORT" "$HOST" >> ~/.ssh/known_hosts
+          printf '%s\n' "$KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
           target="$USER@$HOST"
-          lock="/home/u779921565/.automation-locks/gamehub-ecosystem.lock"
+          [[ "$LOCK_DIR" =~ ^/[a-zA-Z0-9_./-]+$ ]]
+          lock="$LOCK_DIR/gamehub-ecosystem.lock"
           lock_payload="$(printf 'automation=github-actions-manual-safe-deploy\nsite=gamehubapp.games\nrepo=%s\nrun=%s\ntime=%s\n' "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" "$(date -u +%FT%TZ)" | base64 | tr -d '\n')"
-          ssh -p "$PORT" "$target" "mkdir -p /home/u779921565/.automation-locks && ( set -C; echo '$lock_payload' | base64 -d > '$lock' )"
-          trap 'ssh -p "$PORT" "$target" "rm -f /home/u779921565/.automation-locks/gamehub-ecosystem.lock" || true' EXIT
+          ssh -p "$PORT" "$target" "mkdir -p $LOCK_DIR && ( set -C; echo '$lock_payload' | base64 -d > '$lock' )"
+          trap 'ssh -p "$PORT" "$target" "rm -f $LOCK_DIR/gamehub-ecosystem.lock" || true' EXIT
           backup="$REMOTE_PATH/.deploy-backups/${GITHUB_RUN_ID}-$(date -u +%Y%m%dT%H%M%SZ)"
           while IFS= read -r file; do
             case "$file" in

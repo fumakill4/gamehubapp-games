@@ -47,4 +47,4 @@ def remove_background(img_path, out_path, tolerance=25):
         
     img.save(out_path, "PNG")
 
-remove_background('/Users/christambayong/.gemini/antigravity/brain/c5a5eed3-43ca-44c1-a9ed-18e164df64cf/media__1779037029149.png', 'assets/img/favicon.png')
+remove_background('~/workspace/.gemini/antigravity/brain/c5a5eed3-43ca-44c1-a9ed-18e164df64cf/media__1779037029149.png', 'assets/img/favicon.png')

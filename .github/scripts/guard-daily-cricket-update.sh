@@ -33,7 +33,7 @@ required_home_markers=(
   "GameHub Games | Cricket Culture & Trending Game Guides for India"
   "id=\"GameHubGamesRichResultSchema\""
   "isset(\$_GET['ywag_admin'])"
-  "assets/data/ywag-visits.json"
+  "'/private_bot'"
   "AW-18157597075"
 )
 for marker in "${required_home_markers[@]}"; do
