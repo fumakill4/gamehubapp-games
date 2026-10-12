@@ -41,3 +41,9 @@ DirectoryIndex index.php index.html
   ExpiresByType image/svg+xml "access plus 1 year"
   ExpiresByType image/x-icon "access plus 1 year"
 </IfModule>
+
+# Historical analytics stores must never be downloadable.
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule ^assets/data/ - [F,L]
+</IfModule>

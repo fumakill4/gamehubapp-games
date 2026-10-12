@@ -16,4 +16,4 @@ def remove_bg(input_path, output_path, bg_color=(0, 0, 0), tolerance=15):
     img.putdata(new_data)
     img.save(output_path, "PNG")
 
-remove_bg("/Users/christambayong/.gemini/antigravity/brain/c5a5eed3-43ca-44c1-a9ed-18e164df64cf/hero_bat_ball_raw_1779030212390.png", "assets/img/bat_ball_transparent.png")
+remove_bg("~/workspace/.gemini/antigravity/brain/c5a5eed3-43ca-44c1-a9ed-18e164df64cf/hero_bat_ball_raw_1779030212390.png", "assets/img/bat_ball_transparent.png")
